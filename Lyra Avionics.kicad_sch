@@ -255,6 +255,160 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Connectors:S2B-PH-SM4-TB(LF)(SN)"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "CN"
+				(at 0 11.43 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" "S2B-PH-SM4-TB(LF)(SN)"
+				(at 0 -11.43 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "Connectors:CONN-SMD_P2.00_S2B-PH-SM4-TB-LF-SN"
+				(at 0 -13.97 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://lcsc.com/product-detail/_JST-Sales-America_S2B-PH-SM4-TB-LF-SN_JST-Sales-America-S2B-PH-SM4-TB-LF-SN_C295747.html"
+				(at 0 -16.51 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "LCSC Part" "C295747"
+				(at 0 -19.05 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "S2B-PH-SM4-TB(LF)(SN)_0_1"
+				(rectangle
+					(start -1.27 3.81)
+					(end 5.08 -3.81)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type background)
+					)
+				)
+				(circle
+					(center 0 2.54)
+					(radius 0.38)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin unspecified line
+					(at -3.81 1.27 0)
+					(length 2.54)
+					(name "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin unspecified line
+					(at -3.81 -1.27 0)
+					(length 2.54)
+					(name "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin unspecified line
+					(at 3.81 6.35 270)
+					(length 2.54)
+					(name "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin unspecified line
+					(at 3.81 -6.35 90)
+					(length 2.54)
+					(name "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "GND_14"
 			(power)
 			(pin_names
@@ -7362,6 +7516,10 @@
 		(uuid "63224abc-0461-4734-8ad1-8f1b30d6d581")
 	)
 	(no_connect
+		(at 129.54 198.12)
+		(uuid "65ac8bcd-50d7-4b29-a720-dfa5e823e5c7")
+	)
+	(no_connect
 		(at 367.03 116.84)
 		(uuid "78f98c0e-7557-46fe-86a6-01da10acde66")
 	)
@@ -7372,6 +7530,10 @@
 	(no_connect
 		(at 317.5 166.37)
 		(uuid "9818348d-e986-4f88-8d4f-49223cdcc363")
+	)
+	(no_connect
+		(at 129.54 210.82)
+		(uuid "9d982e92-4cec-49fe-8aad-819e2fceb6da")
 	)
 	(no_connect
 		(at 360.68 176.53)
@@ -7448,6 +7610,16 @@
 			(type default)
 		)
 		(uuid "064ffa68-47fb-40f9-aa28-4f2f8ec04ed9")
+	)
+	(wire
+		(pts
+			(xy 118.11 203.2) (xy 121.92 203.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "06a1d6fa-3b10-487c-8920-89a1d27029f6")
 	)
 	(wire
 		(pts
@@ -8461,6 +8633,16 @@
 	)
 	(wire
 		(pts
+			(xy 118.11 209.55) (xy 118.11 205.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "52a53353-b844-4bb7-bcd4-0b46e50542f7")
+	)
+	(wire
+		(pts
 			(xy 119.38 101.6) (xy 119.38 102.87)
 		)
 		(stroke
@@ -9371,6 +9553,16 @@
 	)
 	(wire
 		(pts
+			(xy 118.11 199.39) (xy 118.11 203.2)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "99ccc8f9-2b25-4b28-a384-117a526bb734")
+	)
+	(wire
+		(pts
 			(xy 124.46 165.1) (xy 128.27 165.1)
 		)
 		(stroke
@@ -10188,6 +10380,16 @@
 			(type default)
 		)
 		(uuid "cc67fb5a-668a-4beb-aec0-764e88763f65")
+	)
+	(wire
+		(pts
+			(xy 118.11 205.74) (xy 121.92 205.74)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "cc6a7412-13c7-45c1-a2bc-4650356c0e82")
 	)
 	(wire
 		(pts
@@ -16560,6 +16762,70 @@
 		)
 	)
 	(symbol
+		(lib_id "Library:VBUS")
+		(at 118.11 199.39 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "7b1f6a85-5f99-49c3-95ff-b97e806e340e")
+		(property "Reference" "#PWR040"
+			(at 118.11 203.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "VBAT"
+			(at 118.491 194.9958 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 118.11 199.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 118.11 199.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 118.11 199.39 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "15794e53-6440-4c24-bf7e-4ca13bca5067")
+		)
+		(instances
+			(project "Lyra Avionics"
+				(path "/94683f5c-9cd9-448e-be96-9792537b5cb8"
+					(reference "#PWR040")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Library:C")
 		(at 351.79 110.49 0)
 		(unit 1)
@@ -17388,6 +17654,71 @@
 			(project "Lyra Avionics"
 				(path "/94683f5c-9cd9-448e-be96-9792537b5cb8"
 					(reference "#PWR032")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_name "GND_14")
+		(lib_id "Library:GND_14")
+		(at 118.11 209.55 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(uuid "8e995d1d-a4f0-4454-b3fb-d844cd000bb3")
+		(property "Reference" "#PWR041"
+			(at 118.11 215.9 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "GND"
+			(at 114.3 210.82 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 118.11 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 118.11 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 118.11 209.55 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(pin "1"
+			(uuid "f9ee6723-6361-455e-bec2-f29b4e7dab1d")
+		)
+		(instances
+			(project "Lyra Avionics"
+				(path "/94683f5c-9cd9-448e-be96-9792537b5cb8"
+					(reference "#PWR041")
 					(unit 1)
 				)
 			)
@@ -19615,6 +19946,91 @@
 			(project "RP2350_80QFN_minimal"
 				(path "/94683f5c-9cd9-448e-be96-9792537b5cb8"
 					(reference "C6")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connectors:S2B-PH-SM4-TB(LF)(SN)")
+		(at 125.73 204.47 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "cf45da38-f1aa-41c9-bd38-0ab4dd5a5218")
+		(property "Reference" "CN1"
+			(at 132.08 203.1999 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "S2B-PH-SM4-TB(LF)(SN)"
+			(at 132.08 205.7399 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connectors:CONN-SMD_P2.00_S2B-PH-SM4-TB-LF-SN"
+			(at 125.73 218.44 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://lcsc.com/product-detail/_JST-Sales-America_S2B-PH-SM4-TB-LF-SN_JST-Sales-America-S2B-PH-SM4-TB-LF-SN_C295747.html"
+			(at 125.73 220.98 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" ""
+			(at 125.73 204.47 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC Part" "C295747"
+			(at 125.73 223.52 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "f7abb4a5-bec2-4815-9b95-e1cb5210fefb")
+		)
+		(pin "2"
+			(uuid "05d78bea-71ac-4ddd-aa39-da1f9c03494b")
+		)
+		(pin "4"
+			(uuid "67e2cc84-4d5e-4a2a-9050-560b8e1cbeaf")
+		)
+		(pin "3"
+			(uuid "c2ae7509-87c4-4d80-b0c2-195e4ebbe7ea")
+		)
+		(instances
+			(project ""
+				(path "/94683f5c-9cd9-448e-be96-9792537b5cb8"
+					(reference "CN1")
 					(unit 1)
 				)
 			)

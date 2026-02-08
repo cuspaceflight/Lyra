@@ -544,7 +544,7 @@
       "plot": "gerbers",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "Lyra Avionics.step",
       "svg": "",
       "vrml": ""
     },
