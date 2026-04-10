@@ -1,12 +1,12 @@
 %TF.GenerationSoftware,KiCad,Pcbnew,10.0.0-rc1*%
-%TF.CreationDate,2026-03-26T22:14:16+00:00*%
+%TF.CreationDate,2026-04-10T11:45:52+01:00*%
 %TF.ProjectId,Lyra-v0.2,4c797261-2d76-4302-9e32-2e6b69636164,rev?*%
 %TF.SameCoordinates,Original*%
 %TF.FileFunction,Soldermask,Bot*%
 %TF.FilePolarity,Negative*%
 %FSLAX46Y46*%
 G04 Gerber Fmt 4.6, Leading zero omitted, Abs format (unit mm)*
-G04 Created by KiCad (PCBNEW 10.0.0-rc1) date 2026-03-26 22:14:16*
+G04 Created by KiCad (PCBNEW 10.0.0-rc1) date 2026-04-10 11:45:52*
 %MOMM*%
 %LPD*%
 G01*
