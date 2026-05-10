@@ -143,28 +143,35 @@ typedef struct bmp_calibration_t {
     float t1;
 } bmp_calibration;
 
-typedef struct bmp_data_t {
+typedef struct bmp_config_t {
     bmp_calibration calibration;
-    bool (*read)(i2c_inst_t*, uint8_t, uint8_t*, size_t, uint8_t*, size_t);
-    bool (*write)(i2c_inst_t*, uint8_t, uint8_t*, uint8_t*, size_t);
-} bmp_data;
 
-bool bmp_init(bmp_data* bmp);
+    i2c_inst_t* i2c;
+    uint8_t     sda;
+    uint8_t     scl;
+    uint8_t     addr;
+
+    bool (*read)(const struct bmp_config_t*, uint8_t*, size_t, uint8_t*, size_t);
+    bool (*write)(const struct bmp_config_t*, uint8_t*, uint8_t*, size_t);
+} bmp_config;
+
+void bmp_defaults(bmp_config* config);
+bool bmp_init(bmp_config* bmp);
 
 bool bmp_pwr_config(
-    const bmp_data* bmp, bool pressure_enable, bool temperature_enable, uint8_t mode);
-bool bmp_osr_config(const bmp_data* bmp, uint8_t osr_p, uint8_t osr_t);
-bool bmp_odr_config(const bmp_data* bmp, uint8_t odr);
-bool bmp_iir_config(const bmp_data* bmp, uint8_t iir_filter);
+    const bmp_config* bmp, bool pressure_enable, bool temperature_enable, uint8_t mode);
+bool bmp_osr_config(const bmp_config* bmp, uint8_t osr_p, uint8_t osr_t);
+bool bmp_odr_config(const bmp_config* bmp, uint8_t odr);
+bool bmp_iir_config(const bmp_config* bmp, uint8_t iir_filter);
 
-void bmp_read_configuration(bmp_data* data);
+void bmp_read_configuration(bmp_config* data);
 
-uint8_t bmp_get_chip_id(const bmp_data* bmp);
+uint8_t bmp_get_chip_id(const bmp_config* bmp);
 
-uint32_t bmp_read_temperature_raw(const bmp_data* bmp);
-float    bmp_read_temperature(const bmp_data* bmp);
+uint32_t bmp_read_temperature_raw(const bmp_config* bmp);
+float    bmp_read_temperature(const bmp_config* bmp);
 
-uint32_t bmp_read_pressure_raw(const bmp_data* bmp);
-float    bmp_read_pressure(const bmp_data* bmp, float temperature);
+uint32_t bmp_read_pressure_raw(const bmp_config* bmp);
+float    bmp_read_pressure(const bmp_config* bmp, float temperature);
 
 float bmp_calc_altitude(float pressure, float sea_level);

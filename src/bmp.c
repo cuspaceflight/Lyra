@@ -6,18 +6,18 @@
 #include "util.h"
 
 bool bmp_i2c_read(
-    i2c_inst_t* i2c, uint8_t addr, uint8_t* reg, size_t reg_len, uint8_t* dst, size_t dst_len)
+    const bmp_config* config, uint8_t* reg, size_t reg_len, uint8_t* dst, size_t dst_len)
 {
-    if (i2c_write_timeout_us(i2c, addr, reg, reg_len, true, BMP_TIMEOUT_US) < 1)
+    if (i2c_write_timeout_us(config->i2c, config->addr, reg, reg_len, true, BMP_TIMEOUT_US) < 1)
         return false;
 
-    if (i2c_read_timeout_us(i2c, addr, dst, dst_len, false, BMP_TIMEOUT_US) < 1)
+    if (i2c_read_timeout_us(config->i2c, config->addr, dst, dst_len, false, BMP_TIMEOUT_US) < 1)
         return false;
 
     return true;
 }
 
-bool bmp_i2c_write(i2c_inst_t* i2c, uint8_t addr, uint8_t* reg, uint8_t* data, size_t len)
+bool bmp_i2c_write(const bmp_config* config, uint8_t* reg, uint8_t* data, size_t len)
 {
     uint8_t buf[len * 2];
 
@@ -26,26 +26,34 @@ bool bmp_i2c_write(i2c_inst_t* i2c, uint8_t addr, uint8_t* reg, uint8_t* data, s
         buf[i * 2 + 1] = data[i];
     }
 
-    if (i2c_write_timeout_us(i2c, addr, buf, len * 2, false, BMP_TIMEOUT_US) < 1)
+    if (i2c_write_timeout_us(config->i2c, config->addr, buf, len * 2, false, BMP_TIMEOUT_US) < 1)
         return false;
 
     return true;
 }
 
-bool bmp_init(bmp_data* bmp)
+void bmp_defaults(bmp_config* config)
+{
+    config->addr = BMP_ADDR;
+    config->sda  = BMP_SDA;
+    config->scl  = BMP_SCL;
+    config->i2c  = BMP_I2C_PORT;
+
+    config->read  = bmp_i2c_read;
+    config->write = bmp_i2c_write;
+}
+
+bool bmp_init(bmp_config* bmp)
 {
     if (bmp == NULL)
         return false;
 
-    i2c_init(BMP_I2C_PORT, 400 * 1000);
+    i2c_init(bmp->i2c, 400 * 1000);
 
-    gpio_set_function(BMP_SDA, GPIO_FUNC_I2C);
-    gpio_set_function(BMP_SCL, GPIO_FUNC_I2C);
-    gpio_pull_up(BMP_SDA);
-    gpio_pull_up(BMP_SCL);
-
-    bmp->read  = bmp_i2c_read;
-    bmp->write = bmp_i2c_write;
+    gpio_set_function(bmp->sda, GPIO_FUNC_I2C);
+    gpio_set_function(bmp->scl, GPIO_FUNC_I2C);
+    gpio_pull_up(bmp->sda);
+    gpio_pull_up(bmp->scl);
 
     bmp_read_configuration(bmp);
 
@@ -53,45 +61,45 @@ bool bmp_init(bmp_data* bmp)
 }
 
 bool bmp_pwr_config(
-    const bmp_data* bmp, bool pressure_enable, bool temperature_enable, uint8_t mode)
+    const bmp_config* bmp, bool pressure_enable, bool temperature_enable, uint8_t mode)
 {
     uint8_t value = ((uint8_t)pressure_enable) | (((uint8_t)temperature_enable) << 1) | (mode << 4);
 
     uint8_t reg = BMP_REG_PWR_CTRL;
 
-    return bmp->write(BMP_I2C_PORT, BMP_ADDR, &reg, &value, 1);
+    return bmp->write(bmp, &reg, &value, 1);
 }
 
-bool bmp_osr_config(const bmp_data* bmp, uint8_t osr_p, uint8_t osr_t)
+bool bmp_osr_config(const bmp_config* bmp, uint8_t osr_p, uint8_t osr_t)
 {
     uint8_t value = osr_p | osr_t << 3;
     uint8_t reg   = BMP_REG_OSR;
 
-    return bmp->write(BMP_I2C_PORT, BMP_ADDR, &reg, &value, 1);
+    return bmp->write(bmp, &reg, &value, 1);
 }
 
-bool bmp_odr_config(const bmp_data* bmp, uint8_t odr)
+bool bmp_odr_config(const bmp_config* bmp, uint8_t odr)
 {
     uint8_t value = odr;
     uint8_t reg   = BMP_REG_ODR;
 
-    return bmp->write(BMP_I2C_PORT, BMP_ADDR, &reg, &value, 1);
+    return bmp->write(bmp, &reg, &value, 1);
 }
 
-bool bmp_iir_config(const bmp_data* bmp, uint8_t iir_filter)
+bool bmp_iir_config(const bmp_config* bmp, uint8_t iir_filter)
 {
     uint8_t value = iir_filter;
     uint8_t reg   = BMP_REG_CONFIG;
 
-    return bmp->write(BMP_I2C_PORT, BMP_ADDR, &reg, &value, 1);
+    return bmp->write(bmp, &reg, &value, 1);
 }
 
-void bmp_read_configuration(bmp_data* bmp)
+void bmp_read_configuration(bmp_config* bmp)
 {
     uint8_t values[21];
     uint8_t reg = BMP_REG_NVM_T1L;
 
-    bmp->read(BMP_I2C_PORT, BMP_ADDR, &reg, 1, values, 21);
+    bmp->read(bmp, &reg, 1, values, 21);
 
     bmp_calibration_int calibration;
 
@@ -139,30 +147,30 @@ void bmp_read_configuration(bmp_data* bmp)
     bmp->calibration.p11 = (float)calibration.p11 / (f2_65);
 }
 
-uint8_t bmp_get_chip_id(const bmp_data* bmp)
+uint8_t bmp_get_chip_id(const bmp_config* bmp)
 {
     uint8_t id;
     uint8_t target_address = BMP_REG_CHIP_ID;
-    if (!bmp->read(BMP_I2C_PORT, BMP_ADDR, &target_address, 1, &id, 1)) {
+    if (!bmp->read(bmp, &target_address, 1, &id, 1)) {
         return 0;
     }
 
     return id;
 }
 
-uint32_t bmp_read_temperature_raw(const bmp_data* bmp)
+uint32_t bmp_read_temperature_raw(const bmp_config* bmp)
 {
     uint8_t temp[3];
     uint8_t addr = BMP_REG_TEMPERATURE_XLSB;
 
-    if (!bmp->read(BMP_I2C_PORT, BMP_ADDR, &addr, 1, temp, 3)) {
+    if (!bmp->read(bmp, &addr, 1, temp, 3)) {
         return 1;
     }
 
     return COMBINE_UINT8_3(temp[2], temp[1], temp[0]);
 }
 
-float bmp_read_temperature(const bmp_data* bmp)
+float bmp_read_temperature(const bmp_config* bmp)
 {
     float partial_data1, partial_data2;
 
@@ -175,19 +183,19 @@ float bmp_read_temperature(const bmp_data* bmp)
     return temperature;
 }
 
-uint32_t bmp_read_pressure_raw(const bmp_data* bmp)
+uint32_t bmp_read_pressure_raw(const bmp_config* bmp)
 {
     uint8_t press[3];
     uint8_t addr = BMP_REG_PRESSURE_XLSB;
 
-    if (!bmp->read(BMP_I2C_PORT, BMP_ADDR, &addr, 1, press, 3)) {
+    if (!bmp->read(bmp, &addr, 1, press, 3)) {
         return 1;
     }
 
     return COMBINE_UINT8_3(press[2], press[1], press[0]);
 }
 
-float bmp_read_pressure(const bmp_data* bmp, float temperature)
+float bmp_read_pressure(const bmp_config* bmp, float temperature)
 {
     float comp_press, partial_data1, partial_data2, partial_data3, partial_data4, partial_out1,
         partial_out2;

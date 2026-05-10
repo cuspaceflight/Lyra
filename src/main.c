@@ -4,7 +4,7 @@
 #include "bmp.h"
 #include "mpu.h"
 
-bmp_data   bmp;
+bmp_config bmp;
 mpu_config mpu;
 
 int main()
