@@ -1,10 +1,12 @@
 add_executable(Lyra
   "main.c"
+  "bmp.c"
 )
 
 target_link_libraries(Lyra
   pico_stdlib
   pico_stdio_usb
+  hardware_i2c
 )
 
 pico_enable_stdio_usb(Lyra 1)
