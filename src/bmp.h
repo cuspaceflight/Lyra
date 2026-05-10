@@ -3,7 +3,7 @@
 #include "hardware/i2c.h"
 
 #define BMP_I2C_PORT i2c1
-#define BMP_ADDR 0x76
+#define BMP_ADDR     0x76
 
 #define BMP_SDA 6
 #define BMP_SCL 7
@@ -68,7 +68,7 @@
 
 #define BMP_REG_CMD 0x7E
 
-#define BMP_MODE_SLEEP 0b00
+#define BMP_MODE_SLEEP  0b00
 #define BMP_MODE_FORCED 0b01
 #define BMP_MODE_NORMAL 0b11
 
@@ -110,48 +110,49 @@
 #define BMP_SEA_LEVEL 1016.f
 
 typedef struct bmp_calibration_int_t {
-  int8_t   p11;
-  int8_t   p10;
-  int16_t  p9;
-  int8_t   p8;
-  int8_t   p7;
-  uint16_t p6;
-  uint16_t p5;
-  int8_t   p4;
-  int8_t   p3;
-  int16_t  p2;
-  int16_t  p1;
-  int8_t   t3;
-  uint16_t t2;
-  uint16_t t1;
+    int8_t   p11;
+    int8_t   p10;
+    int16_t  p9;
+    int8_t   p8;
+    int8_t   p7;
+    uint16_t p6;
+    uint16_t p5;
+    int8_t   p4;
+    int8_t   p3;
+    int16_t  p2;
+    int16_t  p1;
+    int8_t   t3;
+    uint16_t t2;
+    uint16_t t1;
 } bmp_calibration_int;
 
 typedef struct bmp_calibration_t {
-  float p11;
-  float p10;
-  float p9;
-  float p8;
-  float p7;
-  float p6;
-  float p5;
-  float p4;
-  float p3;
-  float p2;
-  float p1;
-  float t3;
-  float t2;
-  float t1;
+    float p11;
+    float p10;
+    float p9;
+    float p8;
+    float p7;
+    float p6;
+    float p5;
+    float p4;
+    float p3;
+    float p2;
+    float p1;
+    float t3;
+    float t2;
+    float t1;
 } bmp_calibration;
 
 typedef struct bmp_data_t {
-  bmp_calibration calibration;
-  bool (*read)(i2c_inst_t*, uint8_t, uint8_t*, size_t, uint8_t*, size_t);
-  bool (*write)(i2c_inst_t*, uint8_t, uint8_t*, uint8_t*, size_t);
+    bmp_calibration calibration;
+    bool (*read)(i2c_inst_t*, uint8_t, uint8_t*, size_t, uint8_t*, size_t);
+    bool (*write)(i2c_inst_t*, uint8_t, uint8_t*, uint8_t*, size_t);
 } bmp_data;
 
 bool bmp_init(bmp_data* bmp);
 
-bool bmp_pwr_config(const bmp_data* bmp, bool pressure_enable, bool temperature_enable, uint8_t mode);
+bool bmp_pwr_config(
+    const bmp_data* bmp, bool pressure_enable, bool temperature_enable, uint8_t mode);
 bool bmp_osr_config(const bmp_data* bmp, uint8_t osr_p, uint8_t osr_t);
 bool bmp_odr_config(const bmp_data* bmp, uint8_t odr);
 bool bmp_iir_config(const bmp_data* bmp, uint8_t iir_filter);
@@ -161,9 +162,9 @@ void bmp_read_configuration(bmp_data* data);
 uint8_t bmp_get_chip_id(const bmp_data* bmp);
 
 uint32_t bmp_read_temperature_raw(const bmp_data* bmp);
-float bmp_read_temperature(const bmp_data* bmp);
+float    bmp_read_temperature(const bmp_data* bmp);
 
 uint32_t bmp_read_pressure_raw(const bmp_data* bmp);
-float bmp_read_pressure(const bmp_data* bmp, float temperature);
+float    bmp_read_pressure(const bmp_data* bmp, float temperature);
 
 float bmp_calc_altitude(float pressure, float sea_level);
