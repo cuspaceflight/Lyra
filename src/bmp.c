@@ -2,6 +2,8 @@
 
 #include "pico/stdlib.h"
 
+#include "util.h"
+
 bool bmp_i2c_read(i2c_inst_t* i2c, uint8_t addr, uint8_t* reg, size_t reg_len, uint8_t* dst, size_t dst_len) {
   if (i2c_write_timeout_us(i2c, addr, reg, reg_len, true, BMP_TIMEOUT_US) < 1)
       return false;
@@ -84,18 +86,18 @@ void bmp_read_configuration(bmp_data* bmp) {
 
   calibration.p11 = (int8_t)values[20];
   calibration.p10 = (int8_t)values[19];
-  calibration.p9  = (int16_t)((uint16_t)values[17] | (((uint16_t)values[18]) << 8));
+  calibration.p9  = (int16_t)COMBINE_UINT8_2(values[18], values[17]);
   calibration.p8  = (int8_t)values[16];
   calibration.p7  = (int8_t)values[15];
-  calibration.p6  = (uint16_t)values[13] | (((uint16_t)values[14]) << 8);
-  calibration.p5  = (uint16_t)values[11] | (((uint16_t)values[12]) << 8);
+  calibration.p6  = COMBINE_UINT8_2(values[14], values[13]);
+  calibration.p5  = COMBINE_UINT8_2(values[12], values[11]);
   calibration.p4  = (int8_t)values[10];
   calibration.p3  = (int8_t)values[9];
-  calibration.p2  = (int16_t)((uint16_t)values[7] | (((uint16_t)values[8]) << 8));
-  calibration.p1  = (int16_t)((uint16_t)values[5] | (((uint16_t)values[6]) << 8));
+  calibration.p2  = (int16_t)COMBINE_UINT8_2(values[8], values[7]);
+  calibration.p1  = (int16_t)COMBINE_UINT8_2(values[6], values[5]);
   calibration.t3  = (int8_t)values[4];
-  calibration.t2  = (uint16_t)values[2] | (((uint16_t)values[3]) << 8);
-  calibration.t1  = (uint16_t)values[0] | (((uint16_t)values[1]) << 8);
+  calibration.t2  = COMBINE_UINT8_2(values[3], values[2]);
+  calibration.t1  = COMBINE_UINT8_2(values[1], values[0]);
 
   const float f2_m8 = 0.00390625f;
   const float f2_m3 = 0.125f;
@@ -144,7 +146,7 @@ uint32_t bmp_read_temperature_raw(const bmp_data* bmp) {
     return 1;
   }
 
-  return ((uint32_t)temp[2]) << 16 | ((uint32_t)temp[1]) << 8 | (uint32_t)temp[0];
+  return COMBINE_UINT8_3(temp[2], temp[1], temp[0]);
 }
 
 float bmp_read_temperature(const bmp_data* bmp) {
@@ -167,7 +169,7 @@ uint32_t bmp_read_pressure_raw(const bmp_data* bmp) {
     return 1;
   }
 
-  return ((uint32_t)press[2]) << 16 | ((uint32_t)press[1]) << 8 | (uint32_t)press[0];
+  return COMBINE_UINT8_3(press[2], press[1], press[0]);
 }
 
 float bmp_read_pressure(const bmp_data* bmp, float temperature) {
