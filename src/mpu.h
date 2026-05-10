@@ -1,10 +1,19 @@
 #pragma once
 
+#include "hardware/spi.h"
+
 #define MPU_SPI_PORT spi0
 #define MPU_MISO     4
 #define MPU_MOSI     3
 #define MPU_CS       5
 #define MPU_SCK      2
+
+#define MPU_REG_BANK_SEL 0x76
+#define MPU_BANK_0       0b000
+#define MPU_BANK_1       0b001
+#define MPU_BANK_2       0b010
+#define MPU_BANK_3       0b011
+#define MPU_BANK_4       0b100
 
 #define MPU_REG_0_DEVICE_CONFIG      0x11
 #define MPU_REG_0_DRIVE_CONFIG       0x13
@@ -56,7 +65,6 @@
 #define MPU_REG_0_FIFO_LOST_PKT1     0x6D
 #define MPU_REG_0_SELF_TEST_CONFIG   0x70
 #define MPU_REG_0_WHO_AM_I           0x75
-#define MPU_REG_0_REG_BANK_SEL       0x76
 
 #define MPU_REG_1_SENSOR_CONFIG0       0x03
 #define MPU_REG_1_GYRO_CONFIG_STATIC2  0x0B
@@ -96,13 +104,42 @@
 #define MPU_REG_3_OFFSET_USER7    0x7E
 #define MPU_REG_3_OFFSET_USER8    0x7F
 
-#define MPU_READ  0x80
-#define MPU_WRITE 0x00
+#define MPU_READ 0x80
+
+#define MPU_PWR_OFF       0b00
+#define MPU_PWR_STANDBY   0b01
+#define MPU_PWR_LOW_POWER 0b10
+#define MPU_PWR_LOW_NOISE 0b11
+
+typedef struct mpu_sensor_data_t {
+    float    temperature;
+    uint16_t accel[3];
+    uint16_t gyro[3];
+} mpu_sensor_data;
 
 typedef struct mpu_config_t {
-  void (*read)(uint8_t, uint8_t*, size_t);
-  bool (*write)();
+    spi_inst_t* spi;
+    uint8_t     miso;
+    uint8_t     mosi;
+    uint8_t     sck;
+    uint8_t     cs;
+
+    mpu_sensor_data sensor_data;
+
+    void (*select)(const struct mpu_config_t*, bool);
+    void (*write)(const struct mpu_config_t*, uint8_t, uint8_t*, size_t);
+    void (*read)(const struct mpu_config_t*, uint8_t, uint8_t*, size_t);
 } mpu_config;
 
+void mpu_defaults(mpu_config* config);
 bool mpu_init(mpu_config* config);
+
+void mpu_set_bank(const mpu_config* config, uint8_t bank);
+
+void mpu_pwr_mgmt(
+    const mpu_config* config, uint8_t accel_mode, uint8_t gyro_mode, bool idle, bool disable_temp);
+
 uint8_t mpu_get_id(const mpu_config* config);
+
+void  mpu_read_data(mpu_config* config);
+float mpu_read_temperature(const mpu_config* config);

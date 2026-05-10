@@ -11,4 +11,4 @@ pico_sdk_init()
 
 add_subdirectory("src")
 
-add_compile_options(-Wall)
+add_compile_options(-Wall -Werror)
