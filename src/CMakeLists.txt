@@ -7,6 +7,7 @@ target_link_libraries(Lyra
   pico_stdio_usb
   bmp388
   icm40609D
+  sx126X
 )
 
 pico_enable_stdio_usb(Lyra 1)
