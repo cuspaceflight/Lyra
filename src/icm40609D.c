@@ -91,6 +91,64 @@ void icm_pwr_mgmt(
     config->write(config, ICM_REG_0_PWR_MGMT0, &value, 1);
 }
 
+void icm_gyro_config(icm_config* config, uint8_t fsr, uint8_t odr)
+{
+    uint8_t value = (fsr << 5) | odr;
+
+    icm_set_bank(config, ICM_BANK_0);
+    config->write(config, ICM_REG_0_GYRO_CONFIG0, &value, 1);
+
+    switch (fsr) {
+    case ICM_GYRO_FSR_2000:
+        config->sensor_correction.gyro_ssf = 16.4f;
+        break;
+    case ICM_GYRO_FSR_1000:
+        config->sensor_correction.gyro_ssf = 32.8f;
+        break;
+    case ICM_GYRO_FSR_500:
+        config->sensor_correction.gyro_ssf = 65.5f;
+        break;
+    case ICM_GYRO_FSR_250:
+        config->sensor_correction.gyro_ssf = 131.f;
+        break;
+    case ICM_GYRO_FSR_125:
+        config->sensor_correction.gyro_ssf = 262.f;
+        break;
+    case ICM_GYRO_FSR_62p5:
+        config->sensor_correction.gyro_ssf = 524.3f;
+        break;
+    case ICM_GYRO_FSR_31p25:
+        config->sensor_correction.gyro_ssf = 1048.6f;
+        break;
+    case ICM_GYRO_FSR_15p625:
+        config->sensor_correction.gyro_ssf = 2097.2f;
+        break;
+    }
+}
+
+void icm_accel_config(icm_config* config, uint8_t fsr, uint8_t odr)
+{
+    uint8_t value = (fsr << 5) | odr;
+
+    icm_set_bank(config, ICM_BANK_0);
+    config->write(config, ICM_REG_0_ACCEL_CONFIG0, &value, 1);
+
+    switch (fsr) {
+    case ICM_ACCEL_FSR_32g:
+        config->sensor_correction.accel_ssf = 1024.f;
+        break;
+    case ICM_ACCEL_FSR_16g:
+        config->sensor_correction.accel_ssf = 2048.f;
+        break;
+    case ICM_ACCEL_FSR_8g:
+        config->sensor_correction.accel_ssf = 4096.f;
+        break;
+    case ICM_ACCEL_FSR_4g:
+        config->sensor_correction.accel_ssf = 8192.f;
+        break;
+    }
+}
+
 uint8_t icm_get_id(const icm_config* config)
 {
     icm_set_bank(config, ICM_BANK_0);
@@ -100,7 +158,17 @@ uint8_t icm_get_id(const icm_config* config)
     return id;
 }
 
-float convert_raw_temperature(uint16_t temperature) { return ((float)temperature / 132.48f) + 25; }
+float convert_raw_temperature(int16_t temperature) { return ((float)temperature / 132.48f) + 25; }
+
+float convert_raw_accel(const icm_config* config, int16_t accel)
+{
+    return ((float)accel / config->sensor_correction.accel_ssf) * 9.80665f;
+}
+
+float convert_raw_gyro(const icm_config* config, int16_t gyro)
+{
+    return (float)gyro / config->sensor_correction.gyro_ssf;
+}
 
 void icm_read_data(icm_config* config)
 {
@@ -109,13 +177,13 @@ void icm_read_data(icm_config* config)
 
     config->sensor_data.temperature
         = convert_raw_temperature(COMBINE_UINT8_2(values[0], values[1]));
-    config->sensor_data.accel[0] = COMBINE_UINT8_2(values[2], values[3]);
-    config->sensor_data.accel[1] = COMBINE_UINT8_2(values[4], values[5]);
-    config->sensor_data.accel[2] = COMBINE_UINT8_2(values[6], values[7]);
+    config->sensor_data.accel[0] = convert_raw_accel(config, COMBINE_UINT8_2(values[2], values[3]));
+    config->sensor_data.accel[1] = convert_raw_accel(config, COMBINE_UINT8_2(values[4], values[5]));
+    config->sensor_data.accel[2] = convert_raw_accel(config, COMBINE_UINT8_2(values[6], values[7]));
 
-    config->sensor_data.gyro[0] = COMBINE_UINT8_2(values[8], values[9]);
-    config->sensor_data.gyro[1] = COMBINE_UINT8_2(values[10], values[11]);
-    config->sensor_data.gyro[2] = COMBINE_UINT8_2(values[12], values[13]);
+    config->sensor_data.gyro[0] = convert_raw_gyro(config, COMBINE_UINT8_2(values[8], values[9]));
+    config->sensor_data.gyro[1] = convert_raw_gyro(config, COMBINE_UINT8_2(values[10], values[11]));
+    config->sensor_data.gyro[2] = convert_raw_gyro(config, COMBINE_UINT8_2(values[12], values[13]));
 }
 
 float icm_read_temperature(const icm_config* config)

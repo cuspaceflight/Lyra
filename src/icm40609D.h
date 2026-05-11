@@ -111,11 +111,59 @@
 #define ICM_PWR_LOW_POWER 0b10
 #define ICM_PWR_LOW_NOISE 0b11
 
+#define ICM_GYRO_ODR_32_KHZ  0b0001
+#define ICM_GYRO_ODR_16_KHZ  0b0010
+#define ICM_GYRO_ODR_8_KHZ   0b0011
+#define ICM_GYRO_ODR_4_KHZ   0b0100
+#define ICM_GYRO_ODR_2_KHZ   0b0101
+#define ICM_GYRO_ODR_1_KHZ   0b0110
+#define ICM_GYRO_ODR_200_HZ  0b0111
+#define ICM_GYRO_ODR_100_HZ  0b1000
+#define ICM_GYRO_ODR_50_HZ   0b1001
+#define ICM_GYRO_ODR_25_HZ   0b1010
+#define ICM_GYRO_ODR_12p5_HZ 0b1011
+#define ICM_GYRO_ODR_500_HZ  0b1111
+
+#define ICM_GYRO_FSR_2000   0b000
+#define ICM_GYRO_FSR_1000   0b001
+#define ICM_GYRO_FSR_500    0b010
+#define ICM_GYRO_FSR_250    0b011
+#define ICM_GYRO_FSR_125    0b100
+#define ICM_GYRO_FSR_62p5   0b101
+#define ICM_GYRO_FSR_31p25  0b110
+#define ICM_GYRO_FSR_15p625 0b111
+
+#define ICM_ACCEL_ODR_32_KHZ    0b0001
+#define ICM_ACCEL_ODR_16_KHZ    0b0010
+#define ICM_ACCEL_ODR_8_KHZ     0b0011
+#define ICM_ACCEL_ODR_4_KHZ     0b0100
+#define ICM_ACCEL_ODR_2_KHZ     0b0101
+#define ICM_ACCEL_ODR_1_KHZ     0b0110
+#define ICM_ACCEL_ODR_200_HZ    0b0111
+#define ICM_ACCEL_ODR_100_HZ    0b1000
+#define ICM_ACCEL_ODR_50_HZ     0b1001
+#define ICM_ACCEL_ODR_25_HZ     0b1010
+#define ICM_ACCEL_ODR_12p5_HZ   0b1011
+#define ICM_ACCEL_ODR_6p25_HZ   0b1100
+#define ICM_ACCEL_ODR_3p125_HZ  0b1101
+#define ICM_ACCEL_ODR_1p5625_HZ 0b1101
+#define ICM_ACCEL_ODR_500_HZ    0b1111
+
+#define ICM_ACCEL_FSR_32g 0b000
+#define ICM_ACCEL_FSR_16g 0b001
+#define ICM_ACCEL_FSR_8g  0b010
+#define ICM_ACCEL_FSR_4g  0b011
+
 typedef struct icm_sensor_data_t {
-    float    temperature;
-    uint16_t accel[3];
-    uint16_t gyro[3];
+    float temperature;
+    float accel[3];
+    float gyro[3];
 } icm_sensor_data;
+
+typedef struct icm_sensor_correction_t {
+    float accel_ssf;
+    float gyro_ssf;
+} icm_sensor_correction;
 
 typedef struct icm_config_t {
     spi_inst_t* spi;
@@ -124,7 +172,8 @@ typedef struct icm_config_t {
     uint8_t     sck;
     uint8_t     cs;
 
-    icm_sensor_data sensor_data;
+    icm_sensor_correction sensor_correction;
+    icm_sensor_data       sensor_data;
 
     void (*select)(const struct icm_config_t*, bool);
     void (*write)(const struct icm_config_t*, uint8_t, uint8_t*, size_t);
@@ -138,6 +187,8 @@ void icm_set_bank(const icm_config* config, uint8_t bank);
 
 void icm_pwr_mgmt(
     const icm_config* config, uint8_t accel_mode, uint8_t gyro_mode, bool idle, bool disable_temp);
+void icm_gyro_config(icm_config* config, uint8_t fsr, uint8_t odr);
+void icm_accel_config(icm_config* config, uint8_t fsr, uint8_t odr);
 
 uint8_t icm_get_id(const icm_config* config);
 
