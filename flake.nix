@@ -50,13 +50,14 @@
 
       buildPhase = ''
         mkdir -p build
-        cmake -B build -G Ninja -DPICO_SDK_PATH=${custom-pico-sdk}/lib/pico-sdk .
+        cmake -B build -G Ninja -DPICO_SDK_PATH=${custom-pico-sdk}/lib/pico-sdk -DCMAKE_EXPORT_COMPILE_COMMANDS=1 .
         cmake --build build
       '';
 
       installPhase = ''
         mkdir -p $out
         cp build/src/Lyra.* $out/
+        cp build/compile_commands.json $out/
       '';
     };
   };
