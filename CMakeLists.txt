@@ -9,6 +9,7 @@ project(Lyra C CXX ASM)
 
 pico_sdk_init()
 
-add_subdirectory("src")
+add_subdirectory(libraries)
+add_subdirectory(src)
 
 add_compile_options(-Wall -Werror)

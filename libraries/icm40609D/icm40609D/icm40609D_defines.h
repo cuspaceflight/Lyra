@@ -1,13 +1,5 @@
 #pragma once
 
-#include "hardware/spi.h"
-
-#define ICM_SPI_PORT spi0
-#define ICM_MISO     4
-#define ICM_MOSI     3
-#define ICM_CS       5
-#define ICM_SCK      2
-
 #define ICM_REG_BANK_SEL 0x76
 #define ICM_BANK_0       0b000
 #define ICM_BANK_1       0b001
@@ -153,44 +145,3 @@
 #define ICM_ACCEL_FSR_16g 0b001
 #define ICM_ACCEL_FSR_8g  0b010
 #define ICM_ACCEL_FSR_4g  0b011
-
-typedef struct icm_sensor_data_t {
-    float temperature;
-    float accel[3];
-    float gyro[3];
-} icm_sensor_data;
-
-typedef struct icm_sensor_correction_t {
-    float accel_ssf;
-    float gyro_ssf;
-} icm_sensor_correction;
-
-typedef struct icm_config_t {
-    spi_inst_t* spi;
-    uint8_t     miso;
-    uint8_t     mosi;
-    uint8_t     sck;
-    uint8_t     cs;
-
-    icm_sensor_correction sensor_correction;
-    icm_sensor_data       sensor_data;
-
-    void (*select)(const struct icm_config_t*, bool);
-    void (*write)(const struct icm_config_t*, uint8_t, uint8_t*, size_t);
-    void (*read)(const struct icm_config_t*, uint8_t, uint8_t*, size_t);
-} icm_config;
-
-void icm_defaults(icm_config* config);
-bool icm_init(icm_config* config);
-
-void icm_set_bank(const icm_config* config, uint8_t bank);
-
-void icm_pwr_mgmt(
-    const icm_config* config, uint8_t accel_mode, uint8_t gyro_mode, bool idle, bool disable_temp);
-void icm_gyro_config(icm_config* config, uint8_t fsr, uint8_t odr);
-void icm_accel_config(icm_config* config, uint8_t fsr, uint8_t odr);
-
-uint8_t icm_get_id(const icm_config* config);
-
-void  icm_read_data(icm_config* config);
-float icm_read_temperature(const icm_config* config);
