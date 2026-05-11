@@ -1,7 +1,7 @@
 add_executable(Lyra
   "main.c"
-  "bmp.c"
-  "mpu.c"
+  "bmp388.c"
+  "icm40609D.c"
 )
 
 target_link_libraries(Lyra

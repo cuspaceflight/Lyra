@@ -1,11 +1,11 @@
 #include "pico/stdlib.h"
 #include <stdio.h>
 
-#include "bmp.h"
-#include "mpu.h"
+#include "bmp388.h"
+#include "icm40609D.h"
 
 bmp_config bmp;
-mpu_config mpu;
+icm_config icm;
 
 int main()
 {
@@ -15,12 +15,12 @@ int main()
         sleep_ms(100);
     }
 
-    mpu_defaults(&mpu);
-    if (!mpu_init(&mpu)) {
-        printf("Failed to load MPU\n");
+    icm_defaults(&icm);
+    if (!icm_init(&icm)) {
+        printf("Failed to load icm\n");
     }
 
-    mpu_pwr_mgmt(&mpu, MPU_PWR_LOW_NOISE, MPU_PWR_LOW_NOISE, false, false);
+    icm_pwr_mgmt(&icm, ICM_PWR_LOW_NOISE, ICM_PWR_LOW_NOISE, false, false);
 
     // bmp_init(&bmp);
     // bmp_osr_config(&bmp, BMP_OVERSAMPLE_X16, BMP_OVERSAMPLE_X2);
@@ -29,13 +29,13 @@ int main()
     // bmp_pwr_config(&bmp, false, true, BMP_MODE_NORMAL);
 
     while (true) {
-        uint8_t id = mpu_get_id(&mpu);
-        // float   temp = mpu_read_temperature(&mpu);
-        mpu_read_data(&mpu);
+        uint8_t id = icm_get_id(&icm);
+        // float   temp = icm_read_temperature(&icm);
+        icm_read_data(&icm);
 
-        printf("0x%x | %f | %d %d %d | %d %d %d\n", id, mpu.sensor_data.temperature,
-            mpu.sensor_data.accel[0], mpu.sensor_data.accel[1], mpu.sensor_data.accel[2],
-            mpu.sensor_data.gyro[0], mpu.sensor_data.gyro[1], mpu.sensor_data.gyro[2]);
+        printf("0x%x | %f | %d %d %d | %d %d %d\n", id, icm.sensor_data.temperature,
+            icm.sensor_data.accel[0], icm.sensor_data.accel[1], icm.sensor_data.accel[2],
+            icm.sensor_data.gyro[0], icm.sensor_data.gyro[1], icm.sensor_data.gyro[2]);
         // uint8_t id = bmp_get_chip_id(&bmp);
         // float temp = bmp_read_temperature(&bmp);
         // float pressure = bmp_read_pressure(&bmp, temp);

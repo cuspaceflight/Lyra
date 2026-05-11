@@ -1,4 +1,4 @@
-#include "bmp.h"
+#include "bmp388.h"
 
 #include "pico/stdlib.h"
 #include <math.h>
