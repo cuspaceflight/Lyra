@@ -39,19 +39,6 @@ void icm_spi_read(const icm_inst* icm, uint8_t reg, uint8_t* values, size_t len)
     memcpy(values, &rx[1], len);
 }
 
-// void icm_defaults(icm_inst* icm)
-// {
-//     icm->mosi = ICM_MOSI;
-//     icm->miso = ICM_MISO;
-//     icm->sck  = ICM_SCK;
-//     icm->cs   = ICM_CS;
-//     icm->spi  = ICM_SPI_PORT;
-//
-//     icm->select = icm_spi_select;
-//     icm->write  = icm_spi_write;
-//     icm->read   = icm_spi_read;
-// }
-
 bool icm_init(icm_inst* icm, icm_config config)
 {
     if (icm == NULL)
