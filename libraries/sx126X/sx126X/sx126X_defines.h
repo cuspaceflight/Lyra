@@ -98,3 +98,16 @@
 #define LORA_IRQ_CAD_DONE          (1 << 7)
 #define LORA_IRQ_CAD_DETECTED      (1 << 8)
 #define LORA_IRQ_TIMEOUT           (1 << 9)
+#define LORA_IRQ_ALL               (0xFFFF)
+
+#define LORA_REGULATOR_LDO   0
+#define LORA_REGULATOR_DC_DC 1
+
+#define LORA_ERROR_RC64K_CALIB_ERR (1 << 0)
+#define LORA_ERROR_RC13M_CALIB_ERR (1 << 1)
+#define LORA_ERROR_PLL_CALIB_ERR   (1 << 2)
+#define LORA_ERROR_ADC_CALIB_ERR   (1 << 3)
+#define LORA_ERROR_IMG_CALIB_ERR   (1 << 4)
+#define LORA_ERROR_XOSC_START_ERR  (1 << 5)
+#define LORA_ERROR_PLL_LOCK_ERR    (1 << 6)
+#define LORA_ERROR_PA_RAMP_ERR     (1 << 8)

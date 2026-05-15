@@ -4,6 +4,7 @@
 #include "defines.h"
 
 #include "sx126X/sx126X.h"
+#include "sx126X/sx126X_defines.h"
 
 lora_inst lora;
 
@@ -30,34 +31,34 @@ int main()
     if (!lora_init(&lora, lora_config_defaults)) {
         printf("Failed to initialize LoRa");
     }
+    lora_set_tx_params(&lora, 14, LORA_RAMP_TIME_200U);
 
     lora_set_modulation_params(&lora, LORA_SF_10, LORA_BW_125, LORA_CR_4_5, false);
-    // lora_set_packet_params(&lora, 0x00, false, 0x00, true, false);
-    lora_set_tx_params(&lora, 1, LORA_RAMP_TIME_200U);
-    lora_set_dio_irq_params(
-        &lora, LORA_IRQ_TX_DONE | LORA_IRQ_TIMEOUT, LORA_IRQ_TX_DONE | LORA_IRQ_TIMEOUT, 0, 0);
+    lora_set_dio_irq_params(&lora, LORA_IRQ_TX_DONE | LORA_IRQ_TIMEOUT, 0, 0, 0);
+    lora_clear_irq_status(&lora, LORA_IRQ_ALL);
 
     bool ready_to_send = true;
 
-    while (true) {
-        const uint8_t message[] = "Hello, World";
-        const size_t  len       = 13;
+    uint32_t len = 50;
+    char     message[len];
 
+    uint32_t counter = 0;
+    while (true) {
         if (ready_to_send) {
+            snprintf(message, len, "Hello, World: %d", counter);
+
             ready_to_send = false;
             printf("Sending: '%s'\n", message);
 
-            lora_write_tx_message(&lora, message, len);
-            lora_set_packet_params(&lora, 0x00, false, len, true, false);
-            lora_tx(&lora, 1000);
+            lora_write_tx_message(&lora, (uint8_t*)message, len);
+            lora_set_packet_params(&lora, 0x08, false, len, true, false);
+            lora_tx(&lora, 0);
+            counter++;
         }
-
-        printf("%d\n", lora_get_irq_status(&lora));
 
         if ((lora_get_irq_status(&lora) & LORA_IRQ_TX_DONE) != 0) {
             ready_to_send = true;
             lora_clear_irq_status(&lora, LORA_IRQ_TX_DONE);
-            printf("Ready to send\n");
         }
 
         sleep_ms(500);
