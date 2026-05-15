@@ -71,6 +71,7 @@ void lora_spi_read_buffer(const lora_inst* lora, uint8_t offset, uint8_t* data, 
     memset(tx + 2, 0, len + 1);
 
     lora->spi_op(lora, tx, rx, len + 3);
+
     memcpy(data, rx + 3, len);
 }
 
@@ -419,6 +420,7 @@ void lora_set_tx_params(const lora_inst* lora, int8_t power, uint8_t ramp_time)
 }
 
 void lora_set_packet_params(const lora_inst* lora, uint16_t preamble_length, bool implicit_header,
+
     uint8_t payload_length, bool enable_crc, bool invert_iq)
 {
     lora_wait_busy(lora);
@@ -456,6 +458,55 @@ void lora_write_tx_message(const lora_inst* lora, const uint8_t* buf, size_t len
 
     lora_wait_busy(lora);
     lora->write_buffer(lora, 0, buf, len);
+}
+
+uint8_t lora_read_message(const lora_inst* lora, uint8_t* buf, uint8_t len)
+{
+    uint8_t msg_len, offset;
+    lora_get_rx_buffer_status(lora, &msg_len, &offset);
+    if (msg_len > len)
+        msg_len = len;
+
+    lora->read_buffer(lora, offset, buf, msg_len);
+
+    return msg_len;
+}
+
+void lora_get_rx_buffer_status(
+    const lora_inst* lora, uint8_t* payload_length_rx, uint8_t* rx_start_buffer_pointer)
+{
+    uint8_t buf[4] = {
+        LORA_CMD_GET_RX_BUFFER_STATUS,
+        0,
+        0,
+        0,
+    };
+    lora->spi_op(lora, buf, buf, sizeof(buf));
+
+    if (payload_length_rx != NULL)
+        *payload_length_rx = buf[2];
+    if (rx_start_buffer_pointer != NULL)
+        *rx_start_buffer_pointer = buf[3];
+}
+
+void lora_get_packet_status(
+    const lora_inst* lora, int8_t* rssi_pkt, int8_t* snr_pkt, int8_t* signal_rssi_pkt)
+{
+    uint8_t buf[5] = {
+        LORA_CMD_GET_RX_BUFFER_STATUS,
+        0,
+        0,
+        0,
+        0,
+    };
+    lora->spi_op(lora, buf, buf, sizeof(buf));
+
+    if (rssi_pkt != NULL)
+        *rssi_pkt = -buf[2] / 2;
+    if (snr_pkt != NULL)
+        *snr_pkt = -buf[3] / 4;
+    if (signal_rssi_pkt != NULL)
+        *signal_rssi_pkt = -buf[4] / 2;
 }
 
 void lora_set_dio_irq_params(const lora_inst* lora, uint16_t irq_mask, uint16_t dio1_mask,
@@ -502,4 +553,14 @@ void lora_clear_irq_status(const lora_inst* lora, uint16_t irq)
         irq & 0xFF,
     };
     lora->spi_op(lora, buf, buf, sizeof(buf));
+}
+
+bool lora_has_received_packet(const lora_inst* lora)
+{
+    return (lora_get_irq_status(lora) & LORA_IRQ_RX_DONE);
+}
+
+bool lora_is_packet_valid(const lora_inst* lora)
+{
+    return !(lora_get_irq_status(lora) & LORA_IRQ_CRC_ERR);
 }

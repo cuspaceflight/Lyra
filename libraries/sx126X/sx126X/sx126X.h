@@ -56,11 +56,19 @@ void lora_set_tx_params(const lora_inst* lora, int8_t power, uint8_t ramp_time);
 void lora_set_packet_params(const lora_inst* lora, uint16_t preamble_length, bool implicit_header,
     uint8_t payload_length, bool enable_crc, bool invert_iq);
 
-void lora_set_buffer_base_address(const lora_inst* lora, uint8_t tx_base, uint8_t rx_base);
-void lora_write_tx_message(const lora_inst* lora, const uint8_t* buf, size_t len);
+void    lora_set_buffer_base_address(const lora_inst* lora, uint8_t tx_base, uint8_t rx_base);
+void    lora_write_tx_message(const lora_inst* lora, const uint8_t* buf, size_t len);
+uint8_t lora_read_message(const lora_inst* lora, uint8_t* buf, uint8_t len);
+void    lora_get_rx_buffer_status(
+       const lora_inst* lora, uint8_t* payload_length_rx, uint8_t* rx_start_buffer_pointer);
+void lora_get_packet_status(
+    const lora_inst* lora, int8_t* rssi_pkt, int8_t* snr_pkt, int8_t* signal_rssi_pkt);
 
 void lora_set_dio_irq_params(const lora_inst* lora, uint16_t irq_mask, uint16_t dio1_mask,
     uint16_t dio2_mask, uint16_t dio3_mask);
 
 uint16_t lora_get_irq_status(const lora_inst* lora);
 void     lora_clear_irq_status(const lora_inst* lora, uint16_t irq);
+
+bool lora_has_received_packet(const lora_inst* lora);
+bool lora_is_packet_valid(const lora_inst* lora);

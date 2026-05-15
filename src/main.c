@@ -31,39 +31,93 @@ int main()
     if (!lora_init(&lora, lora_config_defaults)) {
         printf("Failed to initialize LoRa");
     }
-    lora_set_tx_params(&lora, 14, LORA_RAMP_TIME_200U);
 
     lora_set_modulation_params(&lora, LORA_SF_10, LORA_BW_125, LORA_CR_4_5, false);
-    lora_set_dio_irq_params(&lora, LORA_IRQ_TX_DONE | LORA_IRQ_TIMEOUT, 0, 0, 0);
+    lora_set_dio_irq_params(&lora, LORA_IRQ_RX_DONE | LORA_IRQ_TIMEOUT, 0, 0, 0);
     lora_clear_irq_status(&lora, LORA_IRQ_ALL);
 
-    bool ready_to_send = true;
+    lora_set_packet_params(&lora, 0x08, false, 0xFF, true, false);
 
-    uint32_t len = 50;
+    lora_set_buffer_base_address(&lora, 0, 0);
+
+    lora_rx(&lora, 0xFFFFFF);
+
+    uint32_t len = 255;
     char     message[len];
 
-    uint32_t counter = 0;
     while (true) {
-        if (ready_to_send) {
-            snprintf(message, len, "Hello, World: %d", counter);
+        if (lora_has_received_packet(&lora)) {
+            if (!lora_is_packet_valid(&lora)) {
+                printf("Invalid Packet\n");
+                continue;
+            }
 
-            ready_to_send = false;
-            printf("Sending: '%s'\n", message);
+            uint8_t read = lora_read_message(&lora, (uint8_t*)message, len);
+            printf("RECEIVED: %.*s\n", read, message);
 
-            lora_write_tx_message(&lora, (uint8_t*)message, len);
-            lora_set_packet_params(&lora, 0x08, false, len, true, false);
-            lora_tx(&lora, 0);
-            counter++;
-        }
-
-        if ((lora_get_irq_status(&lora) & LORA_IRQ_TX_DONE) != 0) {
-            ready_to_send = true;
-            lora_clear_irq_status(&lora, LORA_IRQ_TX_DONE);
+            lora_clear_irq_status(&lora, LORA_IRQ_ALL);
         }
 
         sleep_ms(500);
     }
 }
+
+// int main()
+// {
+//     stdio_init_all();
+//
+//     while (!stdio_usb_connected()) {
+//         sleep_ms(100);
+//     }
+//
+//     lora_config lora_config_defaults = {
+//         .spi      = LORA_SPI_PORT,
+//         .miso     = LORA_MISO,
+//         .mosi     = LORA_MOSI,
+//         .sck      = LORA_SCK,
+//         .cs       = LORA_CS,
+//         .rst      = LORA_RST,
+//         .busy     = LORA_BUSY,
+//         .freq     = 868E6,
+//         .syncword = 0x3444,
+//     };
+//
+//     if (!lora_init(&lora, lora_config_defaults)) {
+//         printf("Failed to initialize LoRa");
+//     }
+//     lora_set_tx_params(&lora, 14, LORA_RAMP_TIME_200U);
+//
+//     lora_set_modulation_params(&lora, LORA_SF_10, LORA_BW_125, LORA_CR_4_5, false);
+//     lora_set_dio_irq_params(&lora, LORA_IRQ_TX_DONE | LORA_IRQ_TIMEOUT, 0, 0, 0);
+//     lora_clear_irq_status(&lora, LORA_IRQ_ALL);
+//
+//     bool ready_to_send = true;
+//
+//     uint32_t len = 50;
+//     char     message[len];
+//
+//     uint32_t counter = 0;
+//     while (true) {
+//         if (ready_to_send) {
+//             snprintf(message, len, "Hello, World: %d", counter);
+//
+//             ready_to_send = false;
+//             printf("Sending: '%s'\n", message);
+//
+//             lora_write_tx_message(&lora, (uint8_t*)message, len);
+//             lora_set_packet_params(&lora, 0x08, false, len, true, false);
+//             lora_tx(&lora, 0);
+//             counter++;
+//         }
+//
+//         if ((lora_get_irq_status(&lora) & LORA_IRQ_TX_DONE) != 0) {
+//             ready_to_send = true;
+//             lora_clear_irq_status(&lora, LORA_IRQ_TX_DONE);
+//         }
+//
+//         sleep_ms(500);
+//     }
+// }
 
 // #include "bmp388/bmp388.h"
 // #include "icm40609D/icm40609D.h"
