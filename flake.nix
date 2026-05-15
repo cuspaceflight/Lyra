@@ -57,7 +57,6 @@
       installPhase = ''
         mkdir -p $out
         cp build/src/Lyra.* $out/
-        cp build/compile_commands.json $out/
       '';
     };
   };
