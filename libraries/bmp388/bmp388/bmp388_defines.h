@@ -99,4 +99,13 @@
 #define BMP_IIR_COEF_63  0b110
 #define BMP_IIR_COEF_127 0b111
 
-#define BMP_SEA_LEVEL 1016.f
+#define BMP_ERR_FATEL (1 << 0)
+#define BMP_ERR_CMD   (1 << 1)
+#define BMP_ERR_CONF  (1 << 2)
+
+#define BMP_CMD_NOP               0x00
+#define BMP_CMD_EXTMODE_EN_MIDDLE 0x34
+#define BMP_CMD_FIFO_FLUSH        0xB0
+#define BMP_CMD_SOFTRESET         0xB6
+
+#define BMP_SEA_LEVEL 1013.25f
