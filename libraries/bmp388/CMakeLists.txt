@@ -8,4 +8,6 @@ target_compile_options(bmp388 PRIVATE -Wall -Wextra)
 target_link_libraries(bmp388
   pico_stdlib
   hardware_i2c
+
+  logger
 )

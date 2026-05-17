@@ -2,6 +2,8 @@
 
 #include "bmp388_defines.h"
 
+#include "logger/logger.h"
+
 #include "pico/stdlib.h"
 #include <math.h>
 
@@ -12,6 +14,8 @@
 bool bmp_i2c_read(
     const bmp_inst* config, uint8_t* reg, size_t reg_len, uint8_t* dst, size_t dst_len)
 {
+    LOG_VERBOSE("BMP", "%d@%d->%d@%d", reg_len, *reg, dst_len, *dst);
+
     if (i2c_write_timeout_us(
             config->config.i2c, config->config.addr, reg, reg_len, true, BMP_TIMEOUT_US)
         < 1)
@@ -27,6 +31,8 @@ bool bmp_i2c_read(
 
 bool bmp_i2c_write(const bmp_inst* bmp, uint8_t* reg, uint8_t* data, size_t len)
 {
+    LOG_VERBOSE("BMP", "%d@%d", len, *reg);
+
     uint8_t buf[len * 2];
 
     for (uint8_t i = 0; i < len * 2; i++) {
@@ -43,6 +49,8 @@ bool bmp_i2c_write(const bmp_inst* bmp, uint8_t* reg, uint8_t* data, size_t len)
 
 bool bmp_init(bmp_inst* bmp, bmp_config config)
 {
+    LOG_DEBUG("BMP", "");
+
     if (bmp == NULL)
         return false;
 
@@ -71,6 +79,8 @@ bool bmp_init(bmp_inst* bmp, bmp_config config)
 
 void bmp_softreset(const bmp_inst* bmp)
 {
+    LOG_DEBUG("BMP", "");
+
     uint8_t value = BMP_CMD_SOFTRESET;
 
     uint8_t reg = BMP_REG_CMD;
@@ -80,6 +90,9 @@ void bmp_softreset(const bmp_inst* bmp)
 
 bool bmp_pwr_config(bmp_inst* bmp, bool pressure_enable, bool temperature_enable, uint8_t mode)
 {
+    LOG_DEBUG("BMP", "Pressure enable: %d | Temperature enable: %d | Mode: %d", pressure_enable,
+        temperature_enable, mode);
+
     bmp->sensor_config.enable_pressure    = pressure_enable;
     bmp->sensor_config.enable_temperature = temperature_enable;
 
@@ -92,6 +105,8 @@ bool bmp_pwr_config(bmp_inst* bmp, bool pressure_enable, bool temperature_enable
 
 bool bmp_osr_config(const bmp_inst* bmp, uint8_t osr_p, uint8_t osr_t)
 {
+    LOG_DEBUG("BMP", "Pressure: %d | Temperature: %d", osr_p, osr_t);
+
     uint8_t value = osr_p | osr_t << 3;
     uint8_t reg   = BMP_REG_OSR;
 
@@ -100,6 +115,8 @@ bool bmp_osr_config(const bmp_inst* bmp, uint8_t osr_p, uint8_t osr_t)
 
 bool bmp_odr_config(const bmp_inst* bmp, uint8_t odr)
 {
+    LOG_DEBUG("BMP", "%d", odr);
+
     uint8_t value = odr;
     uint8_t reg   = BMP_REG_ODR;
 
@@ -108,6 +125,8 @@ bool bmp_odr_config(const bmp_inst* bmp, uint8_t odr)
 
 bool bmp_iir_config(const bmp_inst* bmp, uint8_t iir_filter)
 {
+    LOG_DEBUG("BMP", "%d", iir_filter);
+
     uint8_t value = iir_filter;
     uint8_t reg   = BMP_REG_CONFIG;
 
@@ -116,6 +135,8 @@ bool bmp_iir_config(const bmp_inst* bmp, uint8_t iir_filter)
 
 void bmp_read_configuration(bmp_inst* bmp)
 {
+    LOG_DEBUG("BMP", "");
+
     uint8_t values[21];
     uint8_t reg = BMP_REG_NVM_T1L;
 
@@ -165,10 +186,27 @@ void bmp_read_configuration(bmp_inst* bmp)
     bmp->calibration.p9  = (double)calibration.p9 / (f2_48);
     bmp->calibration.p10 = (double)calibration.p10 / (f2_48);
     bmp->calibration.p11 = (double)calibration.p11 / (f2_65);
+
+    LOG_VERBOSE("BMP", "t1: %.15e", bmp->calibration.t1);
+    LOG_VERBOSE("BMP", "t2: %.15e", bmp->calibration.t2);
+    LOG_VERBOSE("BMP", "t3: %.15e", bmp->calibration.t3);
+    LOG_VERBOSE("BMP", "p1: %.15e", bmp->calibration.p1);
+    LOG_VERBOSE("BMP", "p2: %.15e", bmp->calibration.p2);
+    LOG_VERBOSE("BMP", "p3: %.15e", bmp->calibration.p3);
+    LOG_VERBOSE("BMP", "p4: %.15e", bmp->calibration.p4);
+    LOG_VERBOSE("BMP", "p5: %.15e", bmp->calibration.p5);
+    LOG_VERBOSE("BMP", "p6: %.15e", bmp->calibration.p6);
+    LOG_VERBOSE("BMP", "p7: %.15e", bmp->calibration.p7);
+    LOG_VERBOSE("BMP", "p8: %.15e", bmp->calibration.p8);
+    LOG_VERBOSE("BMP", "p9: %.15e", bmp->calibration.p9);
+    LOG_VERBOSE("BMP", "p10: %.15e", bmp->calibration.p10);
+    LOG_VERBOSE("BMP", "p11: %.15e", bmp->calibration.p11);
 }
 
 uint8_t bmp_get_chip_id(const bmp_inst* bmp)
 {
+    LOG_DEBUG("BMP", "");
+
     uint8_t id;
     uint8_t target_address = BMP_REG_CHIP_ID;
     if (!bmp->read(bmp, &target_address, 1, &id, 1)) {
@@ -180,6 +218,8 @@ uint8_t bmp_get_chip_id(const bmp_inst* bmp)
 
 uint8_t bmp_get_error(const bmp_inst* bmp)
 {
+    LOG_DEBUG("BMP", "");
+
     uint8_t reg = BMP_REG_ERR;
     uint8_t val;
     bmp->read(bmp, &reg, 1, &val, 1);
@@ -188,6 +228,8 @@ uint8_t bmp_get_error(const bmp_inst* bmp)
 
 void bmp_read_values(bmp_inst* bmp)
 {
+    LOG_DEBUG("BMP", "");
+
     uint8_t temp[6];
     uint8_t addr = BMP_REG_PRESSURE_XLSB;
 
@@ -209,6 +251,8 @@ void bmp_read_values(bmp_inst* bmp)
 
 void bmp_read_temperature(bmp_inst* bmp)
 {
+    LOG_DEBUG("BMP", "");
+
     double partial_data1, partial_data2;
 
     uint32_t temp_raw = bmp->sensor_raw.temp_raw;
@@ -224,6 +268,8 @@ void bmp_read_temperature(bmp_inst* bmp)
 
 void bmp_read_pressure(bmp_inst* bmp)
 {
+    LOG_DEBUG("BMP", "");
+
     double comp_press, partial_data1, partial_data2, partial_data3, partial_data4, partial_out1,
         partial_out2;
 
