@@ -8,4 +8,6 @@ target_compile_options(icm40609D PRIVATE -Wall -Wextra)
 target_link_libraries(icm40609D
   pico_stdlib
   hardware_spi
+
+   logger
 )
