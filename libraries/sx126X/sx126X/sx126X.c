@@ -9,12 +9,21 @@
 
 #include <hardware/gpio.h>
 
+#include "logger/logger.h"
+
 #define COMBINE_UINT8_2(hi, lo) ((uint16_t)(hi) << 8) | ((uint16_t)(lo))
 
-void lora_spi_select(const lora_inst* lora, bool enable) { gpio_put(lora->config.cs, !enable); }
+void lora_spi_select(const lora_inst* lora, bool enable)
+{
+    LOG_VERBOSE("LORA", "%d", !enable);
+
+    gpio_put(lora->config.cs, !enable);
+}
 
 void lora_spi_op(const lora_inst* lora, uint8_t* tx, uint8_t* rx, size_t len)
 {
+    LOG_VERBOSE("LORA", "%d", len);
+
     lora_wait_busy(lora);
     lora->select(lora, true);
     spi_write_read_blocking(lora->config.spi, tx, rx, len);
@@ -24,6 +33,8 @@ void lora_spi_op(const lora_inst* lora, uint8_t* tx, uint8_t* rx, size_t len)
 
 void lora_spi_write_register(const lora_inst* lora, uint16_t reg, uint8_t* data, size_t len)
 {
+    LOG_VERBOSE("LORA", "->%d:%d", reg, len);
+
     uint8_t tx[len + 3];
     uint8_t rx[len + 3];
 
@@ -37,6 +48,8 @@ void lora_spi_write_register(const lora_inst* lora, uint16_t reg, uint8_t* data,
 
 void lora_spi_read_register(const lora_inst* lora, uint16_t reg, uint8_t* data, size_t len)
 {
+    LOG_VERBOSE("LORA", "<-%d:%d", reg, len);
+
     uint8_t tx[len + 4];
     uint8_t rx[len + 4];
 
@@ -51,6 +64,8 @@ void lora_spi_read_register(const lora_inst* lora, uint16_t reg, uint8_t* data, 
 
 void lora_spi_write_buffer(const lora_inst* lora, uint8_t offset, const uint8_t* data, size_t len)
 {
+    LOG_VERBOSE("LORA", "->%d", offset);
+
     uint8_t tx[len + 2];
     uint8_t rx[len + 2];
 
@@ -63,6 +78,8 @@ void lora_spi_write_buffer(const lora_inst* lora, uint8_t offset, const uint8_t*
 
 void lora_spi_read_buffer(const lora_inst* lora, uint8_t offset, uint8_t* data, size_t len)
 {
+    LOG_VERBOSE("LORA", "<-%d", offset);
+
     uint8_t tx[len + 3];
     uint8_t rx[len + 3];
 
@@ -77,6 +94,8 @@ void lora_spi_read_buffer(const lora_inst* lora, uint8_t offset, uint8_t* data, 
 
 bool lora_init(lora_inst* lora, lora_config config)
 {
+    LOG_DEBUG("LORA", "");
+
     if (lora == NULL)
         return false;
 
@@ -141,6 +160,7 @@ bool lora_init(lora_inst* lora, lora_config config)
 
 void lora_wait_busy(const lora_inst* lora)
 {
+    LOG_VERBOSE("LORA", "");
     while (gpio_get(lora->config.busy)) {
         tight_loop_contents();
     }
@@ -148,6 +168,8 @@ void lora_wait_busy(const lora_inst* lora)
 
 void lora_sleep(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     lora_wait_busy(lora);
 
     uint8_t buf[2] = {
@@ -159,6 +181,8 @@ void lora_sleep(const lora_inst* lora)
 
 void lora_standby(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     lora_wait_busy(lora);
 
     uint8_t buf[2] = {
@@ -170,6 +194,8 @@ void lora_standby(const lora_inst* lora)
 
 void lora_tx(const lora_inst* lora, uint32_t timeout)
 {
+    LOG_DEBUG("LORA", "0x%08X", timeout);
+
     lora_wait_busy(lora);
 
     uint8_t buf[4] = {
@@ -183,6 +209,8 @@ void lora_tx(const lora_inst* lora, uint32_t timeout)
 
 void lora_rx(const lora_inst* lora, uint32_t timeout)
 {
+    LOG_DEBUG("LORA", "0x%08X", timeout);
+
     lora_wait_busy(lora);
 
     uint8_t buf[4] = {
@@ -196,6 +224,8 @@ void lora_rx(const lora_inst* lora, uint32_t timeout)
 
 uint16_t lora_get_errors(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     uint8_t buf[4] = {
         LORA_CMD_GET_DEVICE_ERRORS,
         0,
@@ -209,6 +239,8 @@ uint16_t lora_get_errors(const lora_inst* lora)
 
 void lora_print_errors(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     uint16_t error = lora_get_errors(lora);
     if (error == 0)
         return;
@@ -241,6 +273,8 @@ void lora_print_errors(const lora_inst* lora)
 
 uint8_t lora_get_status(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     lora_wait_busy(lora);
 
     uint8_t buf[2] = {
@@ -254,6 +288,8 @@ uint8_t lora_get_status(const lora_inst* lora)
 
 void lora_print_status(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     uint8_t status = lora_get_status(lora);
 
     uint8_t chip_mode      = (status >> 4) & 0b111;
@@ -301,6 +337,8 @@ void lora_print_status(const lora_inst* lora)
 
 uint16_t lora_get_sync_word(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     lora_wait_busy(lora);
 
     uint8_t values[2];
@@ -310,6 +348,8 @@ uint16_t lora_get_sync_word(const lora_inst* lora)
 
 void lora_set_sync_word(const lora_inst* lora, uint16_t sync_word)
 {
+    LOG_DEBUG("LORA", "0x%04X", sync_word);
+
     lora_wait_busy(lora);
 
     uint8_t values[2] = { (sync_word >> 8) & 0xFF, sync_word & 0xFF };
@@ -318,6 +358,8 @@ void lora_set_sync_word(const lora_inst* lora, uint16_t sync_word)
 
 void lora_set_packet_type(const lora_inst* lora, bool lora_mode)
 {
+    LOG_DEBUG("LORA", "%d", lora_mode);
+
     lora_wait_busy(lora);
 
     uint8_t buf[2] = {
@@ -330,6 +372,9 @@ void lora_set_packet_type(const lora_inst* lora, bool lora_mode)
 void lora_set_pa_config(
     const lora_inst* lora, uint8_t pa_duty_cycle, uint8_t hp_max, uint8_t device_select)
 {
+    LOG_DEBUG(
+        "LORA", "Duty Cycle: %d | Hp Max: %d | Device: %d", pa_duty_cycle, hp_max, device_select);
+
     lora_wait_busy(lora);
 
     uint8_t buf[5] = {
@@ -345,6 +390,9 @@ void lora_set_pa_config(
 void lora_set_modulation_params(
     const lora_inst* lora, uint8_t SF, uint8_t BW, uint8_t CR, bool LDRO)
 {
+    LOG_DEBUG("LORA", "Spreading Factor: %d | Bandwidth: %d | Coding Rate: %d | LDRO: %d", SF, BW,
+        CR, LDRO);
+
     lora_wait_busy(lora);
 
     uint8_t buf[9] = {
@@ -363,6 +411,8 @@ void lora_set_modulation_params(
 
 void lora_set_regulator_mode(const lora_inst* lora, uint8_t reg_mode_param)
 {
+    LOG_DEBUG("LORA", "Regulator Mode: %d", reg_mode_param);
+
     lora_wait_busy(lora);
 
     uint8_t buf[2] = {
@@ -374,6 +424,8 @@ void lora_set_regulator_mode(const lora_inst* lora, uint8_t reg_mode_param)
 
 void lora_set_frequency(const lora_inst* lora, uint32_t freq_hz)
 {
+    LOG_DEBUG("LORA", "Frequency: %d", freq_hz);
+
     lora_wait_busy(lora);
 
     if (freq_hz >= 863E6 && freq_hz <= 870E6) {
@@ -407,6 +459,8 @@ void lora_set_frequency(const lora_inst* lora, uint32_t freq_hz)
 
 void lora_set_tx_params(const lora_inst* lora, int8_t power, uint8_t ramp_time)
 {
+    LOG_DEBUG("LORA", "Power: %d | Ramp Time: %d", power, ramp_time);
+
     lora_wait_busy(lora);
 
     power = (power < -9) ? -9 : ((power > 22) ? 22 : power);
@@ -423,6 +477,10 @@ void lora_set_packet_params(const lora_inst* lora, uint16_t preamble_length, boo
 
     uint8_t payload_length, bool enable_crc, bool invert_iq)
 {
+    LOG_DEBUG("LORA",
+        "Preamble: %d | Implicit Header: %d| Payload Length: %d | CRC: %d | Invert IQ: %d",
+        preamble_length, implicit_header, payload_length, enable_crc, invert_iq);
+
     lora_wait_busy(lora);
 
     uint8_t buf[10] = {
@@ -442,6 +500,7 @@ void lora_set_packet_params(const lora_inst* lora, uint16_t preamble_length, boo
 
 void lora_set_buffer_base_address(const lora_inst* lora, uint8_t tx_base, uint8_t rx_base)
 {
+    LOG_DEBUG("LORA", "TX: %d | RX: %d", tx_base, rx_base);
 
     lora_wait_busy(lora);
     uint8_t buf[3] = {
@@ -454,6 +513,8 @@ void lora_set_buffer_base_address(const lora_inst* lora, uint8_t tx_base, uint8_
 
 void lora_write_tx_message(const lora_inst* lora, const uint8_t* buf, size_t len)
 {
+    LOG_DEBUG("LORA", "%d", len);
+
     lora_set_buffer_base_address(lora, 0, 0);
 
     lora_wait_busy(lora);
@@ -462,6 +523,8 @@ void lora_write_tx_message(const lora_inst* lora, const uint8_t* buf, size_t len
 
 uint8_t lora_read_message(const lora_inst* lora, uint8_t* buf, uint8_t len)
 {
+    LOG_DEBUG("LORA", "%d", len);
+
     uint8_t msg_len, offset;
     lora_get_rx_buffer_status(lora, &msg_len, &offset);
     if (msg_len > len)
@@ -475,6 +538,8 @@ uint8_t lora_read_message(const lora_inst* lora, uint8_t* buf, uint8_t len)
 void lora_get_rx_buffer_status(
     const lora_inst* lora, uint8_t* payload_length_rx, uint8_t* rx_start_buffer_pointer)
 {
+    LOG_DEBUG("LORA", "");
+
     uint8_t buf[4] = {
         LORA_CMD_GET_RX_BUFFER_STATUS,
         0,
@@ -492,6 +557,8 @@ void lora_get_rx_buffer_status(
 void lora_get_packet_status(
     const lora_inst* lora, int8_t* rssi_pkt, int8_t* snr_pkt, int8_t* signal_rssi_pkt)
 {
+    LOG_DEBUG("LORA", "");
+
     uint8_t buf[5] = {
         LORA_CMD_GET_RX_BUFFER_STATUS,
         0,
@@ -512,6 +579,9 @@ void lora_get_packet_status(
 void lora_set_dio_irq_params(const lora_inst* lora, uint16_t irq_mask, uint16_t dio1_mask,
     uint16_t dio2_mask, uint16_t dio3_mask)
 {
+    LOG_DEBUG("LORA", "IRQ: 0x%02X | DIO1: 0x%02X | DIO2: 0x%02X | DIO3: 0x%02X", irq_mask,
+        dio1_mask, dio2_mask, dio3_mask);
+
     lora_wait_busy(lora);
 
     uint8_t buf[9] = {
@@ -530,6 +600,8 @@ void lora_set_dio_irq_params(const lora_inst* lora, uint16_t irq_mask, uint16_t 
 
 uint16_t lora_get_irq_status(const lora_inst* lora)
 {
+    LOG_INFO("LORA", "");
+
     lora_wait_busy(lora);
 
     uint8_t buf[4] = {
@@ -545,6 +617,8 @@ uint16_t lora_get_irq_status(const lora_inst* lora)
 
 void lora_clear_irq_status(const lora_inst* lora, uint16_t irq)
 {
+    LOG_INFO("LORA", "IRQ: 0x%02X", irq);
+
     lora_wait_busy(lora);
 
     uint8_t buf[3] = {
@@ -557,10 +631,14 @@ void lora_clear_irq_status(const lora_inst* lora, uint16_t irq)
 
 bool lora_has_received_packet(const lora_inst* lora)
 {
+    LOG_INFO("LORA", "");
+
     return (lora_get_irq_status(lora) & LORA_IRQ_RX_DONE);
 }
 
 bool lora_is_packet_valid(const lora_inst* lora)
 {
+    LOG_DEBUG("LORA", "");
+
     return !(lora_get_irq_status(lora) & LORA_IRQ_CRC_ERR);
 }

@@ -8,4 +8,6 @@ target_compile_options(sx126X PRIVATE -Wall -Wextra)
 target_link_libraries(sx126X
   pico_stdlib
   hardware_spi
+
+  logger
 )
