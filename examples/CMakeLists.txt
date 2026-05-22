@@ -11,6 +11,7 @@ foreach(DIR ${EXAMPLE_DIRS})
               bmp388
               icm40609D
               sx126X
+              gps
             )
 
             pico_enable_stdio_usb(example_${DIR} 1)

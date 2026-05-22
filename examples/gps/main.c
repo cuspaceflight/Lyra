@@ -1,0 +1,50 @@
+#include <pico/stdlib.h>
+
+#include <stdio.h>
+
+#include "gps/gps.h"
+
+#include "logger/logger.h"
+
+#define GPS_I2C  i2c0
+#define GPS_SDA  16
+#define GPS_SCL  17
+#define GPS_ADDR 0x42
+
+gps_inst gps;
+
+int main()
+{
+    stdio_init_all();
+
+    while (!stdio_usb_connected()) {
+        sleep_ms(100);
+    }
+
+    gps_config config = {
+        .i2c  = GPS_I2C,
+        .sda  = GPS_SDA,
+        .scl  = GPS_SCL,
+        .addr = GPS_ADDR,
+    };
+
+    // Initialize the ICM
+    if (!gps_init(&gps, config)) {
+        printf("Failed to load gps\n");
+    }
+
+    char buf[255];
+
+    uint16_t msg_len;
+
+    while (true) {
+        bool processed = gps_read_message(&gps);
+
+        if (processed) {
+            LOG_INFO("MAIN", "%7.5f, %8.5f : %f", gps_convert_dms(gps.data.lat),
+                gps_convert_dms(gps.data.lon), gps.data.utc);
+        }
+
+        sleep_ms(10);
+    }
+}
