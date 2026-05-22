@@ -1,3 +1,4 @@
+#include "bmp388/bmp388_defines.h"
 #include "pico/stdlib.h"
 #include <pico/stdio.h>
 #include <pico/time.h>
@@ -23,6 +24,30 @@
 
 #define ARRAY_SIZE(ARR) sizeof(ARR) / sizeof(ARR[0])
 
+struct transmit_data_t {
+    uint32_t timestamp;
+    uint32_t entry;
+    float    gps_lat;
+    float    gps_lon;
+    float    gps_alt;
+    float    gps_speed;
+    float    bmp_temperature;
+    float    bmp_pressure;
+    float    bmp_altitude;
+    float    icm_temperature;
+    float    icm_accel_x;
+    float    icm_accel_y;
+    float    icm_accel_z;
+    float    icm_gyro_x;
+    float    icm_gyro_y;
+    float    icm_gyro_z;
+};
+
+enum lora_state {
+    LORA_IDLE,
+    LORA_TRANSMITTING,
+};
+
 typedef struct task_t {
     void (*setup)();
     void (*run)();
@@ -34,6 +59,8 @@ typedef struct task_t {
 lora_inst lora;
 bmp_inst  bmp;
 icm_inst  icm;
+
+struct transmit_data_t transmit_data;
 
 void setupLora(void)
 {
@@ -57,7 +84,7 @@ void setupLora(void)
 
     lora_set_tx_params(&lora, CONFIG_LORA_POWER, CONFIG_LORA_RAMP_TIME);
     lora_set_modulation_params(&lora, CONFIG_LORA_SF, CONFIG_LORA_BW, CONFIG_LORA_CR, false);
-    lora_set_dio_irq_params(&lora, LORA_IRQ_RX_DONE | LORA_IRQ_TIMEOUT, 0, 0, 0);
+    lora_set_dio_irq_params(&lora, LORA_IRQ_TX_DONE | LORA_IRQ_TIMEOUT, 0, 0, 0);
     lora_clear_irq_status(&lora, LORA_IRQ_ALL);
 }
 
@@ -101,14 +128,58 @@ void setupICM(void)
     icm_gyro_config(&icm, CONFIG_ICM_GYRO_FSR, CONFIG_ICM_GYRO_ODR);
 }
 
-void runLora(void) { LOG_INFO("MAIN", ""); }
-void runBMP(void) { LOG_INFO("MAIN", ""); }
-void runICM(void) { LOG_INFO("MAIN", ""); }
+void runLora(void)
+{
+    static enum lora_state state = LORA_IDLE;
+
+    LOG_INFO("MAIN", "");
+
+    if (state == LORA_TRANSMITTING && (lora_get_irq_status(&lora) & LORA_IRQ_TX_DONE) != 0) {
+        lora_clear_irq_status(&lora, LORA_IRQ_TX_DONE);
+
+        state = LORA_IDLE;
+    }
+
+    if (state == LORA_IDLE) {
+        lora_write_tx_message(&lora, (uint8_t*)(&transmit_data), sizeof(transmit_data));
+
+        lora_set_packet_params(&lora, CONFIG_LORA_PREAMBLE, CONFIG_LORA_IMPLICIT_HEADER,
+            sizeof(transmit_data), CONFIG_LORA_CRC, CONFIG_LORA_INVERT_IQ);
+
+        lora_tx(&lora, 0);
+        state = LORA_TRANSMITTING;
+    }
+}
+
+void runBMP(void)
+{
+    LOG_INFO("MAIN", "");
+
+    bmp_read_values(&bmp);
+
+    transmit_data.bmp_temperature = bmp.sensor_data.temperature;
+    transmit_data.bmp_pressure    = bmp.sensor_data.pressure;
+    transmit_data.bmp_altitude    = bmp_calc_altitude(bmp.sensor_data.pressure, BMP_SEA_LEVEL);
+}
+
+void runICM(void)
+{
+    LOG_INFO("MAIN", "");
+    icm_read_data(&icm);
+
+    transmit_data.icm_temperature = icm.sensor_data.temperature;
+    transmit_data.icm_accel_x     = icm.sensor_data.accel[0];
+    transmit_data.icm_accel_y     = icm.sensor_data.accel[1];
+    transmit_data.icm_accel_z     = icm.sensor_data.accel[2];
+    transmit_data.icm_gyro_x      = icm.sensor_data.gyro[0];
+    transmit_data.icm_gyro_y      = icm.sensor_data.gyro[1];
+    transmit_data.icm_gyro_z      = icm.sensor_data.gyro[2];
+}
 
 task tasks[] = {
-    { .setup = setupLora, .run = runLora, .delay = 500, .previous = 0 },
     { .setup = setupBMP,  .run = runBMP,  .delay = 250, .previous = 0 },
     { .setup = setupICM,  .run = runICM,  .delay = 100, .previous = 0 },
+    { .setup = setupLora, .run = runLora, .delay = 500, .previous = 0 },
 };
 
 void setup(void)
