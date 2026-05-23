@@ -8,6 +8,7 @@
 #include "defines.h"
 
 #include "bmp388/bmp388.h"
+#include "gps/gps.h"
 #include "icm40609D/icm40609D.h"
 #include "sx126X/sx126X.h"
 
@@ -59,6 +60,7 @@ typedef struct task_t {
 lora_inst lora;
 bmp_inst  bmp;
 icm_inst  icm;
+gps_inst  gps;
 
 struct transmit_data_t transmit_data;
 
@@ -128,6 +130,21 @@ void setupICM(void)
     icm_gyro_config(&icm, CONFIG_ICM_GYRO_FSR, CONFIG_ICM_GYRO_ODR);
 }
 
+void setupGPS(void)
+{
+    LOG_INFO("MAIN", "");
+    gps_config config = {
+        .i2c  = GPS_I2C,
+        .sda  = GPS_SDA,
+        .scl  = GPS_SCL,
+        .addr = GPS_ADDR,
+    };
+
+    if (!gps_init(&gps, config)) {
+        CRITICAL_ERROR("Failed to load GPS");
+    }
+}
+
 void runLora(void)
 {
     static enum lora_state state = LORA_IDLE;
@@ -176,10 +193,25 @@ void runICM(void)
     transmit_data.icm_gyro_z      = icm.sensor_data.gyro[2];
 }
 
+void runGPS(void)
+{
+    LOG_INFO("MAIN", "");
+
+    bool processed = gps_read_message(&gps);
+
+    if (processed) {
+        transmit_data.gps_lat   = gps_convert_dms(gps.raw_data.lat);
+        transmit_data.gps_lon   = gps_convert_dms(gps.raw_data.lon);
+        transmit_data.gps_alt   = gps_convert_dms(gps.raw_data.alt);
+        transmit_data.gps_speed = gps_convert_dms(gps.raw_data.speed);
+    }
+}
+
 task tasks[] = {
-    { .setup = setupBMP,  .run = runBMP,  .delay = 250, .previous = 0 },
-    { .setup = setupICM,  .run = runICM,  .delay = 100, .previous = 0 },
-    { .setup = setupLora, .run = runLora, .delay = 500, .previous = 0 },
+    { .setup = setupBMP,  .run = runBMP,  .delay = 250,  .previous = 0 },
+    { .setup = setupICM,  .run = runICM,  .delay = 100,  .previous = 0 },
+    { .setup = setupGPS,  .run = runGPS,  .delay = 1000, .previous = 0 },
+    { .setup = setupLora, .run = runLora, .delay = 500,  .previous = 0 },
 };
 
 void setup(void)

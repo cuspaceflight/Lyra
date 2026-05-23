@@ -20,6 +20,11 @@
 #define LORA_RST      8
 #define LORA_DIO1     14
 
+#define GPS_I2C  i2c0
+#define GPS_SDA  16
+#define GPS_SCL  17
+#define GPS_ADDR 0x42
+
 #define CONFIG_LORA_SF              LORA_SF_12
 #define CONFIG_LORA_BW              LORA_BW_250
 #define CONFIG_LORA_CR              LORA_CR_4_5
