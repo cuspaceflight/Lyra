@@ -12,7 +12,9 @@
 #include "logger/logger.h"
 
 typedef enum nmea_message_t {
-    GNGLL,
+    GGA,
+    GLL,
+    RMC,
     OTHER,
 } nmea_type;
 
@@ -109,42 +111,120 @@ int16_t find(const char* str, uint16_t length, uint16_t start, char delim)
     return -1;
 }
 
+uint16_t split(
+    const char* str, size_t str_length, char delim, uint16_t* indices, size_t indices_size)
+{
+    uint16_t index = 0;
+    for (uint16_t i = 0; i < str_length; i++) {
+        char c = str[i];
+
+        if (c == delim) {
+            indices[index] = i;
+            index++;
+
+            if (index >= indices_size)
+                return index;
+        }
+    }
+
+    return index;
+}
+
 nmea_type gps_get_nmea_type(gps_inst* gps)
 {
     LOG_DEBUG("GPS", "");
 
-    if (strstr(gps->message.msg, "$GNGLL") != NULL)
-        return GNGLL;
+#define COMPARE_MSG_3(MSG, STR)                                                                    \
+    ((MSG)[0] == '$' && (MSG)[3] == (STR)[0] && (MSG)[4] == (STR)[1] && (MSG)[5] == (STR)[2])
+
+    if (COMPARE_MSG_3(gps->message.msg, "GGA"))
+        return GGA;
+
+    if (COMPARE_MSG_3(gps->message.msg, "GGL"))
+        return GLL;
+
+    if (COMPARE_MSG_3(gps->message.msg, "RMC"))
+        return RMC;
+
+#undef COMPARE_MSG_3
 
     return OTHER;
 }
 
-bool gps_parse_nmea_gpgll(gps_inst* gps)
+bool gps_parse_nmea_gll(gps_inst* gps)
 {
     LOG_DEBUG("GPS", "");
-    int16_t start = find(gps->message.msg, gps->message.msg_length, 0, ',');
-    int16_t next  = find(gps->message.msg, gps->message.msg_length, start + 1, ',');
+    uint16_t indices[7];
+    uint16_t entries = split(gps->message.msg, gps->message.msg_length, ',', indices, 7);
 
-    gps->data.lat = atof(gps->message.msg + start + 1);
-    if (gps->message.msg[next + 1] == 'S')
-        gps->data.lat *= -1.f;
+    if (entries < 7)
+        return false;
 
-    start = find(gps->message.msg, gps->message.msg_length, next + 1, ',');
-    next  = find(gps->message.msg, gps->message.msg_length, start + 1, ',');
+    gps->raw_data.lat = atof(gps->message.msg + indices[0] + 1);
+    gps->raw_data.lat *= (gps->message.msg[indices[1] + 1] == 'S') ? -1 : 1;
 
-    gps->data.lon = atof(gps->message.msg + start + 1);
-    if (gps->message.msg[next + 1] == 'W')
-        gps->data.lon *= -1.f;
+    gps->raw_data.lon = atof(gps->message.msg + indices[2] + 1);
+    gps->raw_data.lon *= (gps->message.msg[indices[3] + 1] == 'W') ? -1 : 1;
 
-    start = find(gps->message.msg, gps->message.msg_length, next + 1, ',');
-    next  = find(gps->message.msg, gps->message.msg_length, start + 1, ',');
-
-    gps->data.utc = atof(gps->message.msg + start + 1);
+    gps->raw_data.utc = (uint32_t)atof(gps->message.msg + indices[4] + 1);
 
     return true;
 }
 
-void gps_parse_nmea_gprmc(gps_inst* gps) { }
+bool gps_parse_nmea_gga(gps_inst* gps)
+{
+    LOG_DEBUG("GPS", "");
+
+    uint16_t indices[13];
+    uint16_t entries = split(gps->message.msg, gps->message.msg_length, ',', indices, 13);
+
+    if (entries < 13)
+        return false;
+
+    gps->raw_data.utc = (uint32_t)atof(gps->message.msg + indices[0] + 1);
+
+    gps->raw_data.lat = atof(gps->message.msg + indices[1] + 1);
+    gps->raw_data.lat *= (gps->message.msg[indices[2] + 1] == 'S') ? -1 : 1;
+
+    gps->raw_data.lon = atof(gps->message.msg + indices[3] + 1);
+    gps->raw_data.lon *= (gps->message.msg[indices[4] + 1] == 'W') ? -1 : 1;
+
+    gps->lock_info.quality = atoi(gps->message.msg + indices[5] + 1);
+    gps->lock_info.SVs     = atoi(gps->message.msg + indices[6] + 1);
+    gps->lock_info.HDOP    = atof(gps->message.msg + indices[7] + 1);
+
+    gps->raw_data.alt = atof(gps->message.msg + indices[8] + 1);
+
+    return true;
+}
+
+bool gps_parse_nmea_rmc(gps_inst* gps)
+{
+    LOG_DEBUG("GPS", "");
+
+    uint16_t indices[11];
+    uint16_t entries = split(gps->message.msg, gps->message.msg_length, ',', indices, 11);
+
+    if (entries < 11)
+        return false;
+
+    if (gps->message.msg[indices[1] + 1] != 'A')
+        return false;
+
+    gps->raw_data.utc = (uint32_t)atof(gps->message.msg + indices[0] + 1);
+
+    gps->raw_data.lat = atof(gps->message.msg + indices[2] + 1);
+    gps->raw_data.lat *= (gps->message.msg[indices[3] + 1] == 'S') ? -1 : 1;
+
+    gps->raw_data.lon = atof(gps->message.msg + indices[4] + 1);
+    gps->raw_data.lon *= (gps->message.msg[indices[5] + 1] == 'W') ? -1 : 1;
+
+    gps->raw_data.speed = atof(gps->message.msg + indices[6] + 1);
+
+    gps->raw_data.date = atoi(gps->message.msg + indices[8] + 1);
+
+    return true;
+}
 
 bool gps_parse_message(gps_inst* gps)
 {
@@ -152,8 +232,12 @@ bool gps_parse_message(gps_inst* gps)
 
     nmea_type type = gps_get_nmea_type(gps);
     switch (type) {
-    case GNGLL:
-        return gps_parse_nmea_gpgll(gps);
+    case GGA:
+        return gps_parse_nmea_gga(gps);
+    case GLL:
+        return gps_parse_nmea_gll(gps);
+    case RMC:
+        return gps_parse_nmea_rmc(gps);
     case OTHER:
         break;
     }

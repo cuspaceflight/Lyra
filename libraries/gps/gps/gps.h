@@ -18,18 +18,27 @@ typedef struct gps_message_t {
     uint16_t msg_length;
 } gps_message;
 
-typedef struct gps_data_t {
-    float lat;
-    float lon;
-    float alt;
-    float utc;
-} gps_data;
+typedef struct gps_raw_data_t {
+    float    lat;
+    float    lon;
+    float    alt;
+    uint32_t utc;
+    uint32_t date;
+    float    speed;
+} gps_raw_data;
+
+typedef struct gps_lock_info_t {
+    uint8_t SVs;
+    uint8_t quality;
+    float   HDOP;
+} gps_lock_info;
 
 typedef struct gps_inst_t {
     gps_config config;
 
-    gps_message message;
-    gps_data    data;
+    gps_message   message;
+    gps_raw_data  raw_data;
+    gps_lock_info lock_info;
 
     bool (*read)(const struct gps_inst_t*, uint8_t*, size_t, uint8_t*, size_t);
     bool (*write)(const struct gps_inst_t*, uint8_t*, uint8_t*, size_t);

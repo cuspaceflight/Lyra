@@ -41,8 +41,9 @@ int main()
         bool processed = gps_read_message(&gps);
 
         if (processed) {
-            LOG_INFO("MAIN", "%7.5f, %8.5f : %f", gps_convert_dms(gps.data.lat),
-                gps_convert_dms(gps.data.lon), gps.data.utc);
+            LOG_INFO("MAIN", "%d:%d | %+014.06f, %+015.06f | %f", gps.raw_data.date,
+                gps.raw_data.utc, gps_convert_dms(gps.raw_data.lat),
+                gps_convert_dms(gps.raw_data.lon), gps.raw_data.alt);
         }
 
         sleep_ms(10);
