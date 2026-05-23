@@ -32,9 +32,6 @@ int main()
     if (!gps_init(&gps, config)) {
         printf("Failed to load gps\n");
     }
-
-    char buf[255];
-
     uint16_t msg_len;
 
     while (true) {
